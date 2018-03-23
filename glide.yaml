@@ -1,0 +1,70 @@
+package: pholcus
+import:
+- package: github.com/Shopify/sarama
+  version: ^1.16.0
+- package: github.com/andybalholm/cascadia
+  version: ^1.0.0
+- package: github.com/elazarl/go-bindata-assetfs
+  version: ^1.0.0
+- package: github.com/go-sql-driver/mysql
+  version: ^1.3.0
+- package: github.com/henrylee2cn/pholcus
+  version: ^1.2.0
+  subpackages:
+  - app
+  - app/aid/history
+  - app/aid/proxy
+  - app/crawler
+  - app/distribute
+  - app/downloader
+  - app/downloader/request
+  - app/downloader/surfer
+  - app/downloader/surfer/agent
+  - app/pipeline
+  - app/pipeline/collector
+  - app/pipeline/collector/data
+  - app/scheduler
+  - app/spider
+  - cmd
+  - common/bytes
+  - common/config
+  - common/gc
+  - common/goquery
+  - common/kafka
+  - common/mahonia
+  - common/mgo
+  - common/mysql
+  - common/ping
+  - common/pinyin
+  - common/pool
+  - common/session
+  - common/util
+  - common/websocket
+  - common/xlsx
+  - config
+  - exec
+  - gui
+  - gui/model
+  - logs
+  - logs/logs
+  - runtime/cache
+  - runtime/status
+  - web
+- package: github.com/henrylee2cn/pholcus_lib
+- package: github.com/henrylee2cn/teleport
+  version: ^3.3.3
+- package: github.com/lxn/walk
+  subpackages:
+  - declarative
+- package: github.com/lxn/win
+- package: github.com/robertkrimen/otto
+- package: golang.org/x/net
+  subpackages:
+  - html
+  - html/charset
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
+testImport:
+- package: github.com/PuerkitoBio/goquery
+  version: ^1.3.0
