@@ -1,6 +1,8 @@
 package txn_test
 
 import (
+	"flag"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -8,6 +10,7 @@ import (
 	. "gopkg.in/check.v1"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2/dbtest"
 	"gopkg.in/mgo.v2/txn"
 )
 
@@ -16,8 +19,8 @@ func TestAll(t *testing.T) {
 }
 
 type S struct {
-	MgoSuite
-
+	server   dbtest.DBServer
+	session  *mgo.Session
 	db       *mgo.Database
 	tc, sc   *mgo.Collection
 	accounts *mgo.Collection
@@ -28,12 +31,22 @@ var _ = Suite(&S{})
 
 type M map[string]interface{}
 
+func (s *S) SetUpSuite(c *C) {
+	s.server.SetPath(c.MkDir())
+}
+
+func (s *S) TearDownSuite(c *C) {
+	s.server.Stop()
+}
+
 func (s *S) SetUpTest(c *C) {
+	s.server.Wipe()
+
 	txn.SetChaos(txn.Chaos{})
 	txn.SetLogger(c)
 	txn.SetDebug(true)
-	s.MgoSuite.SetUpTest(c)
 
+	s.session = s.server.Session()
 	s.db = s.session.DB("test")
 	s.tc = s.db.C("tc")
 	s.sc = s.db.C("tc.stash")
@@ -44,6 +57,7 @@ func (s *S) SetUpTest(c *C) {
 func (s *S) TearDownTest(c *C) {
 	txn.SetLogger(nil)
 	txn.SetDebug(false)
+	s.session.Close()
 }
 
 type Account struct {
@@ -531,10 +545,10 @@ func (s *S) TestPurgeMissing(c *C) {
 
 	again := bson.NewObjectId()
 	c.Logf("---- Running ops2 again under transaction %q, to fail for missing transaction", again.Hex())
-	err = s.runner.Run(ops2, "", nil)
+	err = s.runner.Run(ops2, again, nil)
 	c.Assert(err, ErrorMatches, "cannot find transaction .*")
 
-	c.Logf("---- Puring missing transactions")
+	c.Logf("---- Purging missing transactions")
 	err = s.runner.PurgeMissing("accounts")
 	c.Assert(err, IsNil)
 
@@ -563,7 +577,144 @@ func (s *S) TestPurgeMissing(c *C) {
 	}
 }
 
+func (s *S) TestTxnQueueStashStressTest(c *C) {
+	txn.SetChaos(txn.Chaos{
+		SlowdownChance: 0.3,
+		Slowdown:       50 * time.Millisecond,
+	})
+	defer txn.SetChaos(txn.Chaos{})
+
+	// So we can run more iterations of the test in less time.
+	txn.SetDebug(false)
+
+	const runners = 10
+	const inserts = 10
+	const repeat = 100
+
+	for r := 0; r < repeat; r++ {
+		var wg sync.WaitGroup
+		wg.Add(runners)
+		for i := 0; i < runners; i++ {
+			go func(i, r int) {
+				defer wg.Done()
+
+				session := s.session.New()
+				defer session.Close()
+				runner := txn.NewRunner(s.tc.With(session))
+
+				for j := 0; j < inserts; j++ {
+					ops := []txn.Op{{
+						C:  "accounts",
+						Id: fmt.Sprintf("insert-%d-%d", r, j),
+						Insert: bson.M{
+							"added-by": i,
+						},
+					}}
+					err := runner.Run(ops, "", nil)
+					if err != txn.ErrAborted {
+						c.Check(err, IsNil)
+					}
+				}
+			}(i, r)
+		}
+		wg.Wait()
+	}
+}
+
+func (s *S) TestPurgeMissingPipelineSizeLimit(c *C) {
+	// This test ensures that PurgeMissing can handle very large
+	// txn-queue fields. Previous iterations of PurgeMissing would
+	// trigger a 16MB aggregation pipeline result size limit when run
+	// against a documents or stashes with large numbers of txn-queue
+	// entries. PurgeMissing now no longer uses aggregation pipelines
+	// to work around this limit.
+
+	// The pipeline result size limitation was removed from MongoDB in 2.6 so
+	// this test is only run for older MongoDB version.
+	build, err := s.session.BuildInfo()
+	c.Assert(err, IsNil)
+	if build.VersionAtLeast(2, 6) {
+		c.Skip("This tests a problem that can only happen with MongoDB < 2.6 ")
+	}
+
+	// Insert a single document to work with.
+	err = s.accounts.Insert(M{"_id": 0, "balance": 100})
+	c.Assert(err, IsNil)
+
+	ops := []txn.Op{{
+		C:      "accounts",
+		Id:     0,
+		Update: M{"$inc": M{"balance": 100}},
+	}}
+
+	// Generate one successful transaction.
+	good := bson.NewObjectId()
+	c.Logf("---- Running ops under transaction %q", good.Hex())
+	err = s.runner.Run(ops, good, nil)
+	c.Assert(err, IsNil)
+
+	// Generate another transaction which which will go missing.
+	missing := bson.NewObjectId()
+	c.Logf("---- Running ops under transaction %q (which will go missing)", missing.Hex())
+	err = s.runner.Run(ops, missing, nil)
+	c.Assert(err, IsNil)
+
+	err = s.tc.RemoveId(missing)
+	c.Assert(err, IsNil)
+
+	// Generate a txn-queue on the test document that's large enough
+	// that it used to cause PurgeMissing to exceed MongoDB's pipeline
+	// result 16MB size limit (MongoDB 2.4 and older only).
+	//
+	// The contents of the txn-queue field doesn't matter, only that
+	// it's big enough to trigger the size limit. The required size
+	// can also be achieved by using multiple documents as long as the
+	// cumulative size of all the txn-queue fields exceeds the
+	// pipeline limit. A single document is easier to work with for
+	// this test however.
+	//
+	// The txn id of the successful transaction is used fill the
+	// txn-queue because this takes advantage of a short circuit in
+	// PurgeMissing, dramatically speeding up the test run time.
+	const fakeQueueLen = 250000
+	fakeTxnQueue := make([]string, fakeQueueLen)
+	token := good.Hex() + "_12345678" // txn id + nonce
+	for i := 0; i < fakeQueueLen; i++ {
+		fakeTxnQueue[i] = token
+	}
+
+	err = s.accounts.UpdateId(0, bson.M{
+		"$set": bson.M{"txn-queue": fakeTxnQueue},
+	})
+	c.Assert(err, IsNil)
+
+	// PurgeMissing could hit the same pipeline result size limit when
+	// processing the txn-queue fields of stash documents so insert
+	// the large txn-queue there too to ensure that no longer happens.
+	err = s.sc.Insert(
+		bson.D{{"c", "accounts"}, {"id", 0}},
+		bson.M{"txn-queue": fakeTxnQueue},
+	)
+	c.Assert(err, IsNil)
+
+	c.Logf("---- Purging missing transactions")
+	err = s.runner.PurgeMissing("accounts")
+	c.Assert(err, IsNil)
+}
+
+var flaky = flag.Bool("flaky", false, "Include flaky tests")
+
 func (s *S) TestTxnQueueStressTest(c *C) {
+	// This fails about 20% of the time on Mongo 3.2 (I haven't tried
+	// other versions) with account balance being 3999 instead of
+	// 4000. That implies that some updates are being lost. This is
+	// bad and we'll need to chase it down in the near future - the
+	// only reason it's being skipped now is that it's already failing
+	// and it's better to have the txn tests running without this one
+	// than to have them not running at all.
+	if !*flaky {
+		c.Skip("Fails intermittently - disabling until fixed")
+	}
 	txn.SetChaos(txn.Chaos{
 		SlowdownChance: 0.3,
 		Slowdown:       50 * time.Millisecond,

@@ -1,0 +1,201 @@
+hash: 7e38f1a570114043ffcd1c9a65e00eaae86c30ac61ebbcfef890e2accd6e48e8
+updated: 2018-04-09T10:14:42.14493379+08:00
+imports:
+- name: github.com/andybalholm/cascadia
+  version: 901648c87902174f774fac311d7f176f8647bdaa
+- name: github.com/davecgh/go-spew
+  version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
+  subpackages:
+  - spew
+- name: github.com/eapache/go-resiliency
+  version: ef9aaa7ea8bd2448429af1a77cf41b2b3b34bdd6
+  subpackages:
+  - breaker
+- name: github.com/eapache/go-xerial-snappy
+  version: bb955e01b9346ac19dc29eb16586c90ded99a98c
+- name: github.com/eapache/queue
+  version: 093482f3f8ce946c05bcba64badd2c82369e084d
+- name: github.com/elazarl/go-bindata-assetfs
+  version: 30f82fa23fd844bd5bb1e5f216db87fd77b5eb43
+- name: github.com/go-sql-driver/mysql
+  version: a0583e0143b1624142adab07e0e97fe106d99561
+- name: github.com/gogo/protobuf
+  version: 49944b4a4b085da44c43d4b233ea40787396371f
+  subpackages:
+  - proto
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
+- name: github.com/henrylee2cn/cfgo
+  version: fb6bf70438343ba76aa3dfb7b341460fcd3c2057
+- name: github.com/henrylee2cn/go-logging
+  version: 1dd3379c0a4c243afdd37d2faa8f258b02bd67f5
+  subpackages:
+  - color
+- name: github.com/henrylee2cn/goutil
+  version: 0084e10a795bf2eb8ecc345b340c43966c4fab57
+  subpackages:
+  - coarsetime
+  - errors
+  - graceful
+  - graceful/inherit_net
+  - pool
+- name: github.com/henrylee2cn/pholcus
+  version: b8ccaf00e20ba94395422813d09fe2510371d4e9
+  subpackages:
+  - app
+  - app/aid/history
+  - app/aid/proxy
+  - app/crawler
+  - app/distribute
+  - app/downloader
+  - app/downloader/request
+  - app/downloader/surfer
+  - app/downloader/surfer/agent
+  - app/pipeline
+  - app/pipeline/collector
+  - app/pipeline/collector/data
+  - app/scheduler
+  - app/spider
+  - app/spider/common
+  - cmd
+  - common/bytes
+  - common/config
+  - common/gc
+  - common/goquery
+  - common/kafka
+  - common/mahonia
+  - common/mgo
+  - common/mysql
+  - common/ping
+  - common/pinyin
+  - common/pool
+  - common/session
+  - common/util
+  - common/websocket
+  - common/xlsx
+  - config
+  - exec
+  - gui
+  - gui/model
+  - logs
+  - logs/logs
+  - runtime/cache
+  - runtime/status
+  - web
+- name: github.com/henrylee2cn/pholcus_lib
+  version: 3ffb61273b750ae6b570cbceda71cd2f283bd41f
+  subpackages:
+  - IJGUC
+  - alibaba
+  - baidunews
+  - baidusearch
+  - car_home
+  - chinanews
+  - fang_resell_list
+  - filetest
+  - ganji_gongsi
+  - googlesearch
+  - hollandandbarrett
+  - jdsearch
+  - jiban
+  - jingdong
+  - kaola
+  - lewa
+  - miyabaobei
+  - people
+  - qq_avatar
+  - shunfenghaitao
+  - taobao
+  - taobaosearch
+  - wangyi
+  - weibo_fans
+  - wukongwenda
+  - zhihu_bianji
+  - zhihu_daily
+  - zolpc
+  - zolphone
+  - zolslab
+- name: github.com/henrylee2cn/teleport
+  version: 4ece5a802c9fb8badb12cdf07e2ba6fdd6760d3e
+  subpackages:
+  - codec
+  - socket
+  - utils
+  - xfer
+- name: github.com/lxn/walk
+  version: b020f2b3e73d31cd51fa770788e82ec8dbe2907a
+  subpackages:
+  - declarative
+- name: github.com/lxn/win
+  version: aaf8f59e531a7f484381fbc5453def0cffe9c526
+- name: github.com/pierrec/lz4
+  version: ed8d4cc3b461464e69798080a0092bd028910298
+- name: github.com/pierrec/xxHash
+  version: a0006b13c722f7f12368c00a3d3c2ae8a999a0c6
+  subpackages:
+  - xxHash32
+- name: github.com/rcrowley/go-metrics
+  version: 8732c616f52954686704c8645fe1a9d59e9df7c1
+- name: github.com/robertkrimen/otto
+  version: 6c383dd335ef8dcccef05e651ce1eccfe4d0f011
+  subpackages:
+  - ast
+  - dbg
+  - file
+  - parser
+  - registry
+  - token
+- name: github.com/Shopify/sarama
+  version: f7be6aa2bc7b2e38edf816b08b582782194a1c02
+- name: github.com/tidwall/gjson
+  version: 9ed3f8e1a5d67a79157423b8d6f448d42b907f36
+- name: github.com/tidwall/match
+  version: 1731857f09b1f38450e2c12409748407822dc6be
+- name: golang.org/x/net
+  version: 6078986fec03a1dcc236c34816c71b0e05018fda
+  subpackages:
+  - html
+  - html/atom
+  - html/charset
+- name: golang.org/x/sys
+  version: c1138c84af3a9927aee1a1b8b7ce06c9b7ea52bc
+  subpackages:
+  - unix
+- name: golang.org/x/text
+  version: 8c34f848e18c4bd34d02db7f19a0ed1a0a8f5852
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/htmlindex
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
+  - internal/language
+  - internal/language/compact
+  - internal/tag
+  - internal/utf8internal
+  - language
+  - runes
+  - transform
+- name: gopkg.in/Knetic/govaluate.v3
+  version: d216395917cc49052c7c7094cf57f09657ca08a8
+- name: gopkg.in/mgo.v2
+  version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
+  subpackages:
+  - bson
+  - internal/json
+  - internal/sasl
+  - internal/scram
+- name: gopkg.in/sourcemap.v1
+  version: 6e83acea0053641eff084973fee085f0c193c61a
+  subpackages:
+  - base64vlq
+- name: gopkg.in/yaml.v2
+  version: 7f97868eec74b32b0982dd158a51a446d1da7eb5
+testImports:
+- name: github.com/PuerkitoBio/goquery
+  version: a86ea073017a6beddef78c8659e7224e8ca634b0

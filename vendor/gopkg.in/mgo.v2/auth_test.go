@@ -576,7 +576,7 @@ func (s *S) TestAuthLoginCachingWithNewSession(c *C) {
 
 	coll := session.DB("mydb").C("mycoll")
 	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized for .*")
+	c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized .*")
 }
 
 func (s *S) TestAuthLoginCachingAcrossPool(c *C) {
@@ -904,7 +904,7 @@ func (s *S) TestAuthX509Cred(c *C) {
 		c.Skip("server does not support SSL")
 	}
 
-	clientCertPEM, err := ioutil.ReadFile("testdb/client.pem")
+	clientCertPEM, err := ioutil.ReadFile("harness/certs/client.pem")
 	c.Assert(err, IsNil)
 
 	clientCert, err := tls.X509KeyPair(clientCertPEM, clientCertPEM)
